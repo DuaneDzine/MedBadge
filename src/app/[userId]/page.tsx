@@ -3,6 +3,8 @@
 import { useState, use } from 'react'
 import Image from 'next/image'
 import { User, ShieldCheck, Stethoscope, Heart, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react'
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function PortfolioPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params)
@@ -24,10 +26,24 @@ export default function PortfolioPage({ params }: { params: Promise<{ userId: st
     if (step > 1) setStep(step - 1)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Simulated submission to Firestore Cloud Function
-    setSubmitted(true)
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        providerId: userId,
+        reviewerName: isAnonymous ? 'Anonymous' : reviewerName,
+        role: role,
+        rating: rating,
+        reviewText: review,
+        isAnonymous: isAnonymous,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      })
+      setSubmitted(true)
+    } catch (error) {
+      console.error("Error submitting review: ", error);
+      alert("Failed to submit review. Please try again.");
+    }
   }
 
   return (

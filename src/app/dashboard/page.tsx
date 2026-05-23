@@ -8,22 +8,24 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { db, storage } from '@/lib/firebase';
+import { doc, updateDoc, collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Dashboard() {
   const router = useRouter();
   const { user, profile, loading } = useAuth();
   
   useEffect(() => {
-    // DEMO OVERRIDE: Disabled Auth Lock for local preview
-    // if (!loading && !user) {
-    //   router.push('/login');
-    // }
+    // Auth Lock
+    if (!loading && !user) {
+      router.push('/login');
+    }
   }, [user, loading, router]);
 
   const [isPrivate, setIsPrivate] = useState(profile?.visibility === 'private' || false)
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
+  const [expirationDate, setExpirationDate] = useState('')
   const [isChatOpen, setIsChatOpen] = useState(false)
   const { setTheme } = useTheme();
 
@@ -48,16 +50,16 @@ export default function Dashboard() {
     }
   }, [profile])
 
-  // DEMO OVERRIDE: Disabled Auth Lock
-  // if (loading || !user) {
-  //   return (
-  //     <div className="min-h-screen bg-background flex items-center justify-center">
-  //       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-  //     </div>
-  //   );
-  // }
+  // Auth Lock
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-  const userId = user?.uid || 'demo-user-123';
+  const userId = user.uid;
   const mockUserId = userId;
   
   // Toggles the visibility state in Firestore
@@ -94,11 +96,33 @@ export default function Dashboard() {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setUploadStatus(`Uploading ${file.name}...`)
-      setTimeout(() => setUploadStatus('Upload complete! Status: Self-Reported'), 1500)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!expirationDate) {
+      setUploadStatus('Error: Please select an expiration date first.');
+      return;
+    }
+    
+    try {
+      setUploadStatus(`Uploading ${file.name}...`);
+      const fileRef = ref(storage, `users/${userId}/credentials/${file.name}`);
+      await uploadBytes(fileRef, file);
+      const downloadURL = await getDownloadURL(fileRef);
+      
+      await addDoc(collection(db, 'users', userId, 'credentials'), {
+        fileName: file.name,
+        fileUrl: downloadURL,
+        expirationDate: new Date(expirationDate).getTime(),
+        type: 'Credential',
+        visibility: 'private',
+        status: 'Self-Reported',
+        uploadedAt: Date.now()
+      });
+      
+      setUploadStatus('Upload complete! Status: Self-Reported');
+    } catch (error: any) {
+      setUploadStatus(`Upload failed: ${error.message}`);
     }
   }
 
@@ -234,7 +258,7 @@ export default function Dashboard() {
               
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-foreground/80">Expiration Date:</span>
-                <input type="date" className="p-2 bg-background border border-gray-300 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none text-foreground" />
+                <input type="date" value={expirationDate} onChange={(e) => setExpirationDate(e.target.value)} className="p-2 bg-background border border-gray-300 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none text-foreground" />
               </div>
 
               {uploadStatus && <span className="text-sm text-green-600 font-medium">{uploadStatus}</span>}
