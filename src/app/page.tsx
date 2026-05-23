@@ -29,14 +29,14 @@ export default function LandingPage() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex gap-10 text-sm font-bold text-foreground/80 tracking-wide uppercase">
+          <div className="hidden lg:flex gap-10 text-sm font-bold text-foreground/80 tracking-wide uppercase">
             <a href="#features" className="hover:text-primary transition-colors">Features</a>
             <a href="#enterprise" className="hover:text-primary transition-colors">Enterprise</a>
             <a href="#roadmap" className="hover:text-primary transition-colors">Roadmap</a>
             <a href="#pricing" className="hover:text-primary transition-colors">Pricing</a>
           </div>
 
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-6">
             <Link href="/login" className="text-sm font-bold hover:text-primary transition-colors">
               Sign In
             </Link>
@@ -47,7 +47,7 @@ export default function LandingPage() {
 
           {/* Mobile Hamburger Toggle */}
           <button 
-            className="md:hidden p-2 text-foreground/80 hover:text-primary transition-colors"
+            className="lg:hidden p-2 text-foreground/80 hover:text-primary transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
@@ -56,7 +56,7 @@ export default function LandingPage() {
         
         {/* Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-28 left-0 w-full bg-background dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col items-center py-8 gap-6 animate-fade-in z-50">
+          <div className="lg:hidden absolute top-28 left-0 w-full bg-background dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col items-center py-8 gap-6 animate-fade-in z-50">
             <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-bold">Features</a>
             <a href="#enterprise" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-bold">Enterprise</a>
             <a href="#roadmap" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-bold">Roadmap</a>
