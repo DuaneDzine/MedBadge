@@ -56,7 +56,7 @@ export default function LandingPage() {
         
         {/* Mobile Navigation Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-24 left-0 w-full bg-background/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col items-center py-8 gap-6 animate-fade-in">
+          <div className="md:hidden absolute top-28 left-0 w-full bg-background dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col items-center py-8 gap-6 animate-fade-in z-50">
             <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-bold">Features</a>
             <a href="#enterprise" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-bold">Enterprise</a>
             <a href="#roadmap" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-bold">Roadmap</a>

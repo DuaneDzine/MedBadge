@@ -18,7 +18,7 @@ service cloud.firestore {
       // Allow users to update their bio, telemetry, and visibility
       allow update: if request.auth != null && request.auth.uid == userId 
                     && request.resource.data.diff(resource.data).affectedKeys()
-                        .hasOnly(['bio', 'telemetry_config', 'visibility']);
+                        .hasOnly(['bio', 'telemetry_config', 'visibility', 'firstName', 'lastName', 'clinicalTitle', 'primarySpecialty', 'stateOfLicensure', 'npiNumber', 'displayName']);
       allow create, delete: if isAdmin();
       
       // Credentials Subcollection (Phase 2 Vault)
