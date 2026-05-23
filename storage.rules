@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Credentials Vault Storage
+    match /users/{userId}/credentials/{fileName} {
+      // Users can upload their own credentials (max size 5MB)
+      allow write: if request.auth != null 
+                   && request.auth.uid == userId 
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*|application/pdf');
+      
+      // Read access is controlled via Firestore metadata in the app, 
+      // but at the storage level, we allow the owner, admins, or recruiters to view
+      allow read: if request.auth != null 
+                  && (request.auth.uid == userId || request.auth.token.role == 'recruiter' || request.auth.token.admin == true);
+    }
+  }
+}

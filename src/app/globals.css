@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+  }
+
+  .dark {
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --card: #1e293b;
+    --card-foreground: #f8fafc;
+  }
+
+  /* MySpace Personalization Themes */
+  [data-theme='pink'] {
+    --background: #fdf2f8;
+    --foreground: #831843;
+    --primary: #db2777;
+    --primary-foreground: #ffffff;
+    --card: #fce7f3;
+    --card-foreground: #831843;
+  }
+
+  .dark[data-theme='pink'] {
+    --background: #4c0519;
+    --foreground: #fce7f3;
+    --primary: #f472b6;
+    --primary-foreground: #ffffff;
+    --card: #831843;
+    --card-foreground: #fce7f3;
+  }
+
+  [data-theme='green'] {
+    --background: #f0fdf4;
+    --foreground: #14532d;
+    --primary: #16a34a;
+    --primary-foreground: #ffffff;
+    --card: #dcfce7;
+    --card-foreground: #14532d;
+  }
+
+  .dark[data-theme='green'] {
+    --background: #052e16;
+    --foreground: #dcfce7;
+    --primary: #4ade80;
+    --primary-foreground: #052e16;
+    --card: #14532d;
+    --card-foreground: #dcfce7;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
+  }
+}

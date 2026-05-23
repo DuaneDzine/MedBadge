@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Immutable Admin Role Check
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // 1. Core Users Collection
+    match /users/{userId} {
+      // Users can read their own profile. Admins have full access.
+      // If visibility is public, anyone can read.
+      // If private, only the user (or admin/granted employers) can read.
+      allow read: if (request.auth != null && request.auth.uid == userId) 
+                  || isAdmin() 
+                  || resource.data.visibility == 'public';
+      
+      // Allow users to update their bio, telemetry, and visibility
+      allow update: if request.auth != null && request.auth.uid == userId 
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['bio', 'telemetry_config', 'visibility']);
+      allow create, delete: if isAdmin();
+      
+      // Credentials Subcollection (Phase 2 Vault)
+      match /credentials/{credentialId} {
+        // Owner can read all. Public credentials can be read by anyone if profile is public.
+        allow read: if (request.auth != null && request.auth.uid == userId)
+                    || isAdmin()
+                    || (resource.data.visibility == 'public');
+        // Owner can upload/create new credentials
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // 2. Reviews Collection
+    match /reviews/{reviewId} {
+      // Public read access for the portfolio pages
+      allow read: if true;
+      // Authenticated users can submit reviews. 
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    // 3. Isolated Recruiter Marketplace Collection
+    match /recruiter_marketplace/{profileId} {
+      // Only authenticated recruiters or admins can access this data
+      allow read: if (request.auth != null && request.auth.token.role == 'recruiter') || isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}
