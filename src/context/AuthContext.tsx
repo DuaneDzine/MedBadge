@@ -8,7 +8,9 @@ import {
   signInWithPopup,
   signOut as firebaseSignOut,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification
 } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
@@ -23,6 +25,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (e: string, p: string) => Promise<void>;
   signUpWithEmail: (e: string, p: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -83,12 +87,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await createUserWithEmailAndPassword(auth, e, p)
   }
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email)
+  }
+
+  const sendVerificationEmail = async () => {
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser)
+    }
+  }
+
   const signOut = async () => {
     await firebaseSignOut(auth)
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, demoRole, setDemoRole, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, demoRole, setDemoRole, signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword, sendVerificationEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   )
