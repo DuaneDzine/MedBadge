@@ -11,6 +11,7 @@ export interface UserProfile {
   npiNumber?: string;
   displayName: string;
   role: 'professional' | 'recruiter' | 'admin';
+  role_type?: 'b2c_user' | 'b2b_agency' | 'b2b_facility' | 'founder';
   visibility: 'public' | 'private';
   metrics: {
     averageRating: number;

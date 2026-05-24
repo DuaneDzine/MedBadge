@@ -13,6 +13,54 @@ import { doc, updateDoc, collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Dashboard() {
+  const { user, profile, loading, demoRole } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  const activeRole = demoRole || profile?.role_type || 'b2c_user';
+
+  if (activeRole === 'b2b_agency') return <AgencyDashboard />;
+  if (activeRole === 'b2b_facility') return <FacilityDashboard />;
+  
+  return <IndividualDashboard />;
+}
+
+function AgencyDashboard() {
+  return (
+    <div className="min-h-screen bg-background p-12 flex flex-col items-center animate-fade-in">
+      <h1 className="text-3xl font-black mb-4">Agency Dashboard</h1>
+      <p className="text-foreground/70 text-center max-w-lg">
+        Welcome to the B2B Staffing Agency portal. Here you can view aggregated traveler data, manage rosters, and verify credentials across your entire network.
+      </p>
+    </div>
+  );
+}
+
+function FacilityDashboard() {
+  return (
+    <div className="min-h-screen bg-background p-12 flex flex-col items-center animate-fade-in">
+      <h1 className="text-3xl font-black mb-4">Facility Dashboard</h1>
+      <p className="text-foreground/70 text-center max-w-lg">
+        Welcome to the Hospital Facility portal. Review aggregate unit scores, manage active traveler compliance, and track facility-wide patient safety metrics.
+      </p>
+    </div>
+  );
+}
+
+function IndividualDashboard() {
   const router = useRouter();
   const { user, profile, loading } = useAuth();
   

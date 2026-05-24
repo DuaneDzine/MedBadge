@@ -6,7 +6,9 @@ import {
   onAuthStateChanged, 
   GoogleAuthProvider, 
   signInWithPopup,
-  signOut as firebaseSignOut
+  signOut as firebaseSignOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
 } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
@@ -16,7 +18,11 @@ interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
+  demoRole: 'b2c_user' | 'b2b_agency' | 'b2b_facility' | 'founder' | null;
+  setDemoRole: (role: 'b2c_user' | 'b2b_agency' | 'b2b_facility' | 'founder' | null) => void;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (e: string, p: string) => Promise<void>;
+  signUpWithEmail: (e: string, p: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -26,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [demoRole, setDemoRole] = useState<'b2c_user' | 'b2b_agency' | 'b2b_facility' | 'founder' | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -44,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: firebaseUser.email || '',
             displayName: firebaseUser.displayName || '',
             role: 'professional',
+            role_type: 'b2c_user',
             visibility: 'private',
             metrics: { averageRating: 5.0, totalReviews: 0 },
             mfaEnabled: false,
@@ -67,12 +75,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithPopup(auth, provider)
   }
 
+  const signInWithEmail = async (e: string, p: string) => {
+    await signInWithEmailAndPassword(auth, e, p)
+  }
+
+  const signUpWithEmail = async (e: string, p: string) => {
+    await createUserWithEmailAndPassword(auth, e, p)
+  }
+
   const signOut = async () => {
     await firebaseSignOut(auth)
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, demoRole, setDemoRole, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   )

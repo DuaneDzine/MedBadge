@@ -9,7 +9,8 @@ import { useAuth } from '@/context/AuthContext'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { signInWithGoogle, user } = useAuth()
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, user } = useAuth()
+  const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -24,8 +25,19 @@ export default function LoginPage() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('Email/Password registration is currently disabled for Pilot Testing. Please use Google Workspace Login.')
-    setLoading(false)
+    setError('')
+    try {
+      if (isSignUp) {
+        await signUpWithEmail(email, password)
+      } else {
+        await signInWithEmail(email, password)
+      }
+      router.push('/dashboard')
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleGoogleLogin = async () => {
@@ -120,9 +132,15 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-transform active:scale-[0.98] shadow-lg shadow-primary/20 disabled:opacity-50"
           >
-            Sign In Securely
+            {isSignUp ? 'Create Account' : 'Sign In Securely'}
           </button>
         </form>
+        
+        <div className="mt-4 text-center text-sm">
+          <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-bold">
+            {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
+          </button>
+        </div>
         
         <p className="text-center text-sm text-foreground/60 mt-8">
           By signing in, you agree to our Terms of Service.
