@@ -105,9 +105,9 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             
             {/* Visual Phone Mockup */}
-            <div className="relative mx-auto w-[320px] h-[640px] bg-background rounded-[3rem] border-[12px] border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden animate-fade-in hover:scale-105 transition-transform duration-500">
-              <div className="absolute top-0 w-full h-7 bg-gray-100 dark:bg-gray-800 flex justify-center rounded-b-3xl">
-                <div className="w-24 h-5 bg-background rounded-b-xl"></div>
+            <div className="relative mx-auto w-[320px] h-[640px] bg-card rounded-[3rem] border-[12px] border-primary/20 dark:border-primary/30 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(var(--primary),0.1)] overflow-hidden animate-fade-in hover:scale-105 transition-transform duration-500 ring-4 ring-primary/10">
+              <div className="absolute top-0 w-full h-7 bg-primary/20 dark:bg-primary/30 flex justify-center rounded-b-3xl z-10">
+                <div className="w-24 h-5 bg-card rounded-b-xl"></div>
               </div>
               <div className="p-6 pt-16 space-y-6">
                 <div className="flex flex-col items-center">
