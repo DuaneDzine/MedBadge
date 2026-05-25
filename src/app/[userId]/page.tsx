@@ -90,6 +90,37 @@ export default function PortfolioPage({ params }: { params: Promise<{ userId: st
               <CheckCircle2 className="w-4 h-4" /> {providerData?.clinicalTitle ? `Verified ${providerData.clinicalTitle}` : 'Verified Professional'}
             </p>
           </div>
+
+          {/* Expanded Portfolio Details */}
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
+            {providerData?.primarySpecialty && (
+              <span className="px-3 py-1 bg-card border border-gray-100 dark:border-gray-800 text-foreground/80 text-xs font-bold rounded-full shadow-sm">
+                {providerData.primarySpecialty}
+              </span>
+            )}
+            {providerData?.stateOfLicensure && (
+              <span className="px-3 py-1 bg-card border border-gray-100 dark:border-gray-800 text-foreground/80 text-xs font-bold rounded-full shadow-sm">
+                State License: {providerData.stateOfLicensure}
+              </span>
+            )}
+            {providerData?.npiNumber && (
+              <span className="px-3 py-1 bg-card border border-gray-100 dark:border-gray-800 text-foreground/80 text-xs font-bold rounded-full shadow-sm">
+                NPI: {providerData.npiNumber}
+              </span>
+            )}
+          </div>
+
+          {/* Performance Metrics */}
+          <div className="flex justify-center gap-8 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 max-w-xs mx-auto">
+             <div className="text-center">
+               <span className="block text-2xl font-black text-foreground">{providerData?.metrics?.averageRating || "5.0"}</span>
+               <span className="text-[10px] uppercase tracking-wider text-foreground/60 font-bold">Rating</span>
+             </div>
+             <div className="text-center">
+               <span className="block text-2xl font-black text-foreground">{providerData?.metrics?.totalReviews || 0}</span>
+               <span className="text-[10px] uppercase tracking-wider text-foreground/60 font-bold">Verified Reviews</span>
+             </div>
+          </div>
         </header>
 
         {providerData?.credentials && providerData.credentials.length > 0 && (

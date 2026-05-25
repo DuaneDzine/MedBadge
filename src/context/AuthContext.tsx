@@ -13,7 +13,7 @@ import {
   sendEmailVerification
 } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore'
 import { UserProfile } from '@/lib/types'
 
 interface AuthContextType {
@@ -39,39 +39,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [demoRole, setDemoRole] = useState<'b2c_user' | 'b2b_agency' | 'b2b_facility' | 'founder' | null>(null)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeSnapshot: (() => void) | undefined;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
       if (firebaseUser) {
-        // Fetch or create profile
         const profileRef = doc(db, 'users', firebaseUser.uid)
-        const profileSnap = await getDoc(profileRef)
         
-        if (profileSnap.exists()) {
-          setProfile(profileSnap.data() as UserProfile)
-        } else {
-          // Initialize new professional profile
-          const newProfile: UserProfile = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            displayName: firebaseUser.displayName || '',
-            role: 'professional',
-            role_type: 'b2c_user',
-            visibility: 'private',
-            metrics: { averageRating: 5.0, totalReviews: 0 },
-            mfaEnabled: false,
-            createdAt: Date.now(),
-            updatedAt: Date.now()
+        // Listen to realtime updates on the user document
+        unsubscribeSnapshot = onSnapshot(profileRef, async (profileSnap) => {
+          if (profileSnap.exists()) {
+            setProfile(profileSnap.data() as UserProfile)
+          } else {
+            // Initialize new professional profile
+            const newProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              displayName: firebaseUser.displayName || '',
+              role: 'professional',
+              role_type: 'b2c_user',
+              visibility: 'private',
+              metrics: { averageRating: 5.0, totalReviews: 0 },
+              mfaEnabled: false,
+              createdAt: Date.now(),
+              updatedAt: Date.now()
+            }
+            await setDoc(profileRef, newProfile)
+            // onSnapshot will catch this creation and update the state
           }
-          await setDoc(profileRef, newProfile)
-          setProfile(newProfile)
-        }
+          setLoading(false)
+        });
       } else {
         setProfile(null)
+        setLoading(false)
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
       }
-      setLoading(false)
     })
 
-    return () => unsubscribe()
+    return () => {
+      unsubscribeAuth()
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    }
   }, [])
 
   const signInWithGoogle = async () => {
