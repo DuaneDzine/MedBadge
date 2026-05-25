@@ -1,51 +1,62 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Immutable Admin Role Check
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+
+    // ==========================================
+    // HELPER FUNCTIONS (HIPAA & CMIA Compliance)
+    // ==========================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // 1. Core Users Collection
+    // ==========================================
+    // 1. USERS COLLECTION (Identity & Credentials)
+    // ==========================================
     match /users/{userId} {
-      // Users can read their own profile. Admins have full access.
-      // If visibility is public, anyone can read.
-      // If private, only the user (or admin/granted employers) can read.
-      allow read: if (request.auth != null && request.auth.uid == userId) 
-                  || isAdmin() 
-                  || resource.data.visibility == 'public';
+      // DATA MINIMIZATION & RBAC: 
+      // Anyone can view a profile ONLY IF it is set to 'public' (for QR scanning).
+      // Otherwise, only the authenticated owner can access their data.
+      allow read: if isOwner(userId) || resource.data.visibility == 'public';
       
-      // Allow users to update their bio, telemetry, and visibility
-      allow update: if request.auth != null && request.auth.uid == userId 
-                    && request.resource.data.diff(resource.data).affectedKeys()
-                        .hasOnly(['bio', 'telemetry_config', 'visibility', 'firstName', 'lastName', 'clinicalTitle', 'primarySpecialty', 'stateOfLicensure', 'npiNumber', 'displayName']);
-      allow create, delete: if isAdmin();
+      // Only the authenticated owner can modify their own identity data.
+      allow create, update: if isOwner(userId);
       
-      // Credentials Subcollection (Phase 2 Vault)
+      // VETOED: No deleting users from the client side. Deletion must go through 
+      // an authenticated Cloud Function to ensure audit trails and HIPAA compliance.
+      allow delete: if false;
+
+      // Subcollection for legacy credentials (if any)
       match /credentials/{credentialId} {
-        // Owner can read all. Public credentials can be read by anyone if profile is public.
-        allow read: if (request.auth != null && request.auth.uid == userId)
-                    || isAdmin()
-                    || (resource.data.visibility == 'public');
-        // Owner can upload/create new credentials
-        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+        allow read: if isOwner(userId) || get(/databases/$(database)/documents/users/$(userId)).data.visibility == 'public';
+        allow write: if isOwner(userId);
       }
     }
 
-    // 2. Reviews Collection
+    // ==========================================
+    // 2. REVIEWS COLLECTION (Immutable Audit Logs)
+    // ==========================================
     match /reviews/{reviewId} {
-      // Public read access for the portfolio pages
-      allow read: if true;
-      // Anyone can submit a review (even anonymous patients)
-      allow create: if true;
-      allow update, delete: if isAdmin();
+      // CMIA STRICTNESS: Reviews can be submitted by patients or peers, but they 
+      // MUST remain immutable. They cannot be altered or deleted from the client UI.
+      allow create: if true; 
+      allow update, delete: if false; 
+      
+      // Providers can read their own reviews. Public reviews can be read by anyone 
+      // ONLY IF the associated provider's profile is set to public.
+      allow read: if resource.data.providerId == request.auth.uid || 
+                  get(/databases/$(database)/documents/users/$(resource.data.providerId)).data.visibility == 'public';
     }
-
-    // 3. Isolated Recruiter Marketplace Collection
-    match /recruiter_marketplace/{profileId} {
-      // Only authenticated recruiters or admins can access this data
-      allow read: if (request.auth != null && request.auth.token.role == 'recruiter') || isAdmin();
-      allow write: if isAdmin();
+    
+    // ==========================================
+    // 3. DEFAULT ZERO-TRUST RULE
+    // ==========================================
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
