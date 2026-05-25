@@ -49,6 +49,7 @@ export default function LandingPage() {
           <button 
             className="lg:hidden p-2 text-foreground/80 hover:text-primary transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
           </button>
@@ -388,9 +389,9 @@ export default function LandingPage() {
             </div>
             <div className="space-y-4 flex flex-col">
               <h4 className="font-black uppercase tracking-widest text-xs text-foreground/40 mb-2">Legal</h4>
-              <a href="#" className="text-foreground/70 font-medium hover:text-primary transition-colors">Privacy Policy</a>
-              <a href="#" className="text-foreground/70 font-medium hover:text-primary transition-colors">Terms of Service</a>
-              <a href="#" className="text-foreground/70 font-medium hover:text-primary transition-colors">HIPAA Compliance</a>
+              <Link href="/privacy" className="text-foreground/70 font-medium hover:text-primary transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="text-foreground/70 font-medium hover:text-primary transition-colors">Terms of Service</Link>
+              <Link href="/privacy" className="text-foreground/70 font-medium hover:text-primary transition-colors">HIPAA Compliance</Link>
             </div>
           </div>
         </div>

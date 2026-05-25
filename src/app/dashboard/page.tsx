@@ -485,6 +485,7 @@ function IndividualDashboard() {
             </div>
             <button 
               onClick={handlePrivacyToggle}
+              aria-label="Toggle profile visibility"
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isPrivate ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPrivate ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -562,6 +563,7 @@ function IndividualDashboard() {
       <div className="fixed bottom-6 right-6 z-50">
         <button 
           onClick={() => setIsChatOpen(!isChatOpen)}
+          aria-label="Toggle AI Customer Support Chat"
           className="w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform border-4 border-background"
         >
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
