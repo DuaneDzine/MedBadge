@@ -5,6 +5,8 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import { AuthProvider } from '@/context/AuthContext'
 
 import FounderDemoSwitcher from '@/components/FounderDemoSwitcher'
+import Footer from '@/components/Footer'
+import ScrollToTop from '@/components/ScrollToTop'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,6 +26,8 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
             {children}
+            <Footer />
+            <ScrollToTop />
             <FounderDemoSwitcher />
           </AuthProvider>
         </ThemeProvider>

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { db, storage } from '@/lib/firebase';
-import { doc, updateDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, addDoc, arrayUnion } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Dashboard() {
@@ -62,7 +62,7 @@ function FacilityDashboard() {
 
 function IndividualDashboard() {
   const router = useRouter();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   
   useEffect(() => {
     // Auth Lock
@@ -109,6 +109,11 @@ function IndividualDashboard() {
 
   const userId = user.uid;
   const mockUserId = userId;
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
   
   // Toggles the visibility state in Firestore
   const handlePrivacyToggle = async () => {
@@ -158,14 +163,17 @@ function IndividualDashboard() {
       await uploadBytes(fileRef, file);
       const downloadURL = await getDownloadURL(fileRef);
       
-      await addDoc(collection(db, 'users', userId, 'credentials'), {
+      const newCredential = {
         fileName: file.name,
         fileUrl: downloadURL,
         expirationDate: new Date(expirationDate).getTime(),
         type: 'Credential',
-        visibility: 'private',
         status: 'Self-Reported',
         uploadedAt: Date.now()
+      };
+      
+      await updateDoc(doc(db, 'users', userId), {
+        credentials: arrayUnion(newCredential)
       });
       
       setUploadStatus('Upload complete! Status: Self-Reported');
@@ -191,7 +199,7 @@ function IndividualDashboard() {
           </div>
           <div className="flex items-center gap-4">
              <ThemeToggle />
-             <button onClick={() => {}} className="text-sm text-foreground/50 hover:text-foreground">Sign Out</button>
+             <button onClick={handleSignOut} className="text-sm text-foreground/50 hover:text-foreground">Sign Out</button>
           </div>
         </header>
 

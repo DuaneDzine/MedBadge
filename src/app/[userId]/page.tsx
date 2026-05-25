@@ -1,14 +1,33 @@
 'use client'
 
-import { useState, use } from 'react'
+import { useState, use, useEffect } from 'react'
 import Image from 'next/image'
 import { User, ShieldCheck, Stethoscope, Heart, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react'
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 
 export default function PortfolioPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = use(params)
   const [step, setStep] = useState(1)
+  const [providerData, setProviderData] = useState<any>(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const docRef = doc(db, 'users', userId)
+        const docSnap = await getDoc(docRef)
+        if (docSnap.exists()) {
+          setProviderData(docSnap.data())
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingProfile(false)
+      }
+    }
+    fetchUser()
+  }, [userId])
   
   // Form State
   const [role, setRole] = useState<'clinical' | 'patient'>('clinical')
@@ -60,18 +79,39 @@ export default function PortfolioPage({ params }: { params: Promise<{ userId: st
         <header className="text-center space-y-4">
           <div className="relative h-24 w-24 mx-auto rounded-full overflow-hidden shadow-lg border-4 border-card bg-card">
             <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-primary capitalize">
-              {userId.charAt(0)}
+              {(providerData?.displayName || userId).charAt(0)}
             </div>
           </div>
           <div>
             <h1 className="text-3xl font-extrabold text-foreground capitalize tracking-tight">
-              {userId.replace('-', ' ')}
+              {providerData?.displayName || userId.replace('-', ' ')}
             </h1>
             <p className="text-primary font-medium mt-1 flex items-center justify-center gap-1">
-              <CheckCircle2 className="w-4 h-4" /> Verified ICU Nurse
+              <CheckCircle2 className="w-4 h-4" /> {providerData?.clinicalTitle ? `Verified ${providerData.clinicalTitle}` : 'Verified Professional'}
             </p>
           </div>
         </header>
+
+        {providerData?.credentials && providerData.credentials.length > 0 && (
+          <div className="bg-card rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" /> Active Credentials
+            </h2>
+            <div className="space-y-3 relative z-10">
+              {providerData.credentials.map((cred: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-background rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="truncate pr-4 flex-1">
+                    <p className="font-semibold text-sm truncate">{cred.fileName}</p>
+                    <p className="text-xs text-foreground/60">Expires: {new Date(cred.expirationDate).toLocaleDateString()}</p>
+                  </div>
+                  <a href={cred.fileUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+                    View
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="bg-card rounded-3xl p-6 shadow-xl border border-gray-100 dark:border-gray-800 relative overflow-hidden">
           {submitted ? (
