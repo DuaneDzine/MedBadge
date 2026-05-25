@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db, storage } from '@/lib/firebase';
 import { doc, updateDoc, collection, addDoc, arrayUnion } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Users, ShieldCheck, Download, AlertTriangle, CheckCircle, Activity, FileText } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, profile, loading, demoRole } = useAuth();
@@ -39,23 +40,212 @@ export default function Dashboard() {
 }
 
 function AgencyDashboard() {
+  const { signOut } = useAuth();
+  const router = useRouter();
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
+  const mockTravelers = [
+    { id: 1, name: "Sarah Jenkins", specialty: "ICU RN", status: "Compliant", color: "text-green-600 bg-green-100 dark:bg-green-900/30", action: "None" },
+    { id: 2, name: "Marcus Reed", specialty: "ER RN", status: "Expiring Soon", color: "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30", action: "Renew BLS" },
+    { id: 3, name: "Elena Rostova", specialty: "MedSurg", status: "Non-Compliant", color: "text-red-600 bg-red-100 dark:bg-red-900/30", action: "Missing License" },
+    { id: 4, name: "David Chen", specialty: "CRNA", status: "Compliant", color: "text-green-600 bg-green-100 dark:bg-green-900/30", action: "None" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background p-12 flex flex-col items-center animate-fade-in">
-      <h1 className="text-3xl font-black mb-4">Agency Dashboard</h1>
-      <p className="text-foreground/70 text-center max-w-lg">
-        Welcome to the B2B Staffing Agency portal. Here you can view aggregated traveler data, manage rosters, and verify credentials across your entire network.
-      </p>
+    <div className="min-h-screen bg-background p-6 md:p-12 animate-fade-in transition-colors duration-300">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-6 gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-foreground">Aya Healthcare Portal</h1>
+            <p className="text-primary font-medium text-sm mt-1">B2B Staffing Agency Demo</p>
+          </div>
+          <div className="flex items-center gap-4">
+             <ThemeToggle />
+             <button onClick={handleSignOut} className="text-sm font-medium text-foreground/50 hover:text-foreground">Sign Out</button>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Active Roster</p>
+                <h3 className="text-4xl font-bold mt-2">142</h3>
+              </div>
+              <div className="p-3 bg-primary/10 rounded-xl text-primary"><Users className="w-6 h-6" /></div>
+            </div>
+          </div>
+          <div className="bg-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Network Compliance</p>
+                <h3 className="text-4xl font-bold mt-2 text-green-500">94%</h3>
+              </div>
+              <div className="p-3 bg-green-500/10 rounded-xl text-green-500"><ShieldCheck className="w-6 h-6" /></div>
+            </div>
+          </div>
+          <div className="bg-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Pending Actions</p>
+                <h3 className="text-4xl font-bold mt-2 text-yellow-500">12</h3>
+              </div>
+              <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-500"><AlertTriangle className="w-6 h-6" /></div>
+            </div>
+          </div>
+        </div>
+
+        <section className="bg-card rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-xl font-bold text-foreground">Traveler Roster</h2>
+            <button className="flex items-center gap-2 px-5 py-2.5 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-colors shadow-sm">
+              <Download className="w-4 h-4" /> Export JCAHO Roster
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-500 text-sm">
+                <tr>
+                  <th className="p-4 font-semibold">Provider Name</th>
+                  <th className="p-4 font-semibold">Specialty</th>
+                  <th className="p-4 font-semibold">Status</th>
+                  <th className="p-4 font-semibold">Next Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {mockTravelers.map(t => (
+                  <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                    <td className="p-4 font-bold text-foreground">{t.name}</td>
+                    <td className="p-4 text-foreground/70 font-medium">{t.specialty}</td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${t.color}`}>{t.status}</span>
+                    </td>
+                    <td className="p-4 text-sm font-medium text-foreground/70">{t.action}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
 
 function FacilityDashboard() {
+  const { signOut } = useAuth();
+  const router = useRouter();
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
+  const handleDownloadMagnetReport = () => {
+    const reportContent = "MEDBADGE MAGNET COMPLIANCE REPORT\nFacility: Cedars-Sinai Portal\nDate: " + new Date().toLocaleDateString() + "\n\n--- Unit Compliance ---\nICU: 98% (Compliant)\nER: 85% (Warning: 3 ACLS Expiring)\nMedSurg: 100% (Compliant)\n\n--- Quality Metrics ---\nOverall Patient Safety Score: 4.8/5.0\nTotal Active Agency Staff: 45\n\nSignature: ______________________";
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'MAGNET_Approval_Report.txt';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="min-h-screen bg-background p-12 flex flex-col items-center animate-fade-in">
-      <h1 className="text-3xl font-black mb-4">Facility Dashboard</h1>
-      <p className="text-foreground/70 text-center max-w-lg">
-        Welcome to the Hospital Facility portal. Review aggregate unit scores, manage active traveler compliance, and track facility-wide patient safety metrics.
-      </p>
+    <div className="min-h-screen bg-background p-6 md:p-12 animate-fade-in transition-colors duration-300">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-6 gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-foreground">Cedars-Sinai Portal</h1>
+            <p className="text-primary font-medium text-sm mt-1">Facility Compliance & Magnet Demo</p>
+          </div>
+          <div className="flex items-center gap-4">
+             <ThemeToggle />
+             <button onClick={handleSignOut} className="text-sm font-medium text-foreground/50 hover:text-foreground">Sign Out</button>
+          </div>
+        </header>
+
+        <div className="flex justify-end">
+           <button onClick={handleDownloadMagnetReport} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 shadow-lg shadow-primary/20 transition-all active:scale-95 border-2 border-primary/20">
+              <FileText className="w-5 h-5" /> Download MAGNET Approval Packet
+           </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-card p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Patient Safety Score</p>
+                <h3 className="text-4xl font-bold mt-2 text-green-500">4.8 <span className="text-lg text-gray-400">/ 5.0</span></h3>
+              </div>
+              <div className="p-3 bg-green-500/10 rounded-xl text-green-500"><CheckCircle className="w-6 h-6" /></div>
+            </div>
+          </div>
+          <div className="bg-card p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Facility Compliance</p>
+                <h3 className="text-4xl font-bold mt-2 text-primary">94.3%</h3>
+              </div>
+              <div className="p-3 bg-primary/10 rounded-xl text-primary"><Activity className="w-6 h-6" /></div>
+            </div>
+          </div>
+          <div className="bg-card p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Active Agency Staff</p>
+                <h3 className="text-4xl font-bold mt-2">45</h3>
+              </div>
+              <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-foreground"><Users className="w-6 h-6" /></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <section className="lg:col-span-2 bg-card rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="text-xl font-bold text-foreground">Unit Compliance Tracker</h2>
+            </div>
+            <div className="p-8 space-y-8">
+               <div>
+                 <div className="flex justify-between mb-3"><span className="font-bold text-lg">ICU (Intensive Care)</span><span className="text-green-500 font-black text-lg">98%</span></div>
+                 <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-4"><div className="bg-green-500 h-4 rounded-full" style={{width: '98%'}}></div></div>
+               </div>
+               <div>
+                 <div className="flex justify-between mb-3"><span className="font-bold text-lg">ER (Emergency)</span><span className="text-yellow-500 font-black text-lg">85%</span></div>
+                 <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-4"><div className="bg-yellow-500 h-4 rounded-full" style={{width: '85%'}}></div></div>
+               </div>
+               <div>
+                 <div className="flex justify-between mb-3"><span className="font-bold text-lg">MedSurg</span><span className="text-primary font-black text-lg">100%</span></div>
+                 <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-4"><div className="bg-primary h-4 rounded-full" style={{width: '100%'}}></div></div>
+               </div>
+            </div>
+          </section>
+          
+          <section className="bg-yellow-50 dark:bg-yellow-900/10 rounded-3xl shadow-sm border border-yellow-200 dark:border-yellow-900/50 overflow-hidden">
+             <div className="p-6 border-b border-yellow-200 dark:border-yellow-900/50 flex gap-2 items-center text-yellow-700 dark:text-yellow-500 bg-yellow-100/50 dark:bg-transparent">
+                <AlertTriangle className="w-6 h-6" />
+                <h2 className="text-lg font-bold">Compliance Alerts</h2>
+             </div>
+             <div className="p-6 space-y-4">
+                <div className="p-4 bg-white dark:bg-card border border-yellow-300 dark:border-yellow-800 rounded-xl shadow-sm">
+                   <p className="text-sm font-bold text-foreground">ER Unit Warning</p>
+                   <p className="text-xs text-foreground/70 mt-2 leading-relaxed">3 ACLS Certifications expiring within 30 days. Magnet status at risk.</p>
+                </div>
+                <div className="p-4 bg-white dark:bg-card border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+                   <p className="text-sm font-bold text-foreground">New Roster Addition</p>
+                   <p className="text-xs text-foreground/70 mt-2 leading-relaxed">David Chen (CRNA) successfully verified via Primary Source.</p>
+                </div>
+             </div>
+          </section>
+        </div>
+
+      </div>
     </div>
   );
 }
