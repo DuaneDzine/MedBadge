@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { db, storage } from '@/lib/firebase';
-import { doc, updateDoc, collection, addDoc, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, collection, addDoc, arrayUnion } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Users, ShieldCheck, Download, AlertTriangle, CheckCircle, Activity, FileText } from 'lucide-react';
 
@@ -315,7 +315,7 @@ function IndividualDashboard() {
   const handleSaveIdentity = async () => {
     setIsSavingIdentity(true)
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      await setDoc(doc(db, 'users', userId), {
         firstName,
         lastName,
         clinicalTitle,
@@ -323,7 +323,7 @@ function IndividualDashboard() {
         stateOfLicensure,
         npiNumber,
         displayName: `${firstName} ${lastName}`.trim() || profile?.displayName || ''
-      })
+      }, { merge: true })
       alert("Identity saved successfully!")
     } catch (error) {
       alert("Failed to save identity.")
