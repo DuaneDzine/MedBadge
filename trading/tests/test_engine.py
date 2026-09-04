@@ -70,6 +70,19 @@ def test_sma_trend_goes_to_cash_below_average():
     assert w["X"].iloc[-1] == 0.0  # downtrend -> cash
 
 
+
+def test_scenario_slice_and_stats():
+    from backtest import scenarios
+    idx = pd.date_range("2019-12-01", periods=30, freq="W")
+    eq = pd.Series(range(100, 130), index=idx, dtype=float)
+    sub = scenarios.slice_window(eq, "2020-01-01", "2020-02-15")
+    assert sub.iloc[0] == 1.0  # re-based to the pre-window level
+    st = scenarios.regime_stats(sub)
+    assert st["total_return_pct"] is not None and st["weeks"] > 0
+    # A monotonically rising curve has ~zero drawdown.
+    assert st["max_dd_pct"] == 0.0
+
+
 def _run_all():
     fns = [v for k, v in globals().items() if k.startswith("test_") and callable(v)]
     for fn in fns:

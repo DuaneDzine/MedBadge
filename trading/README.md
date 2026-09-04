@@ -58,6 +58,8 @@ Data: dividend/split-adjusted weekly closes for SPY, QQQ, TLT (Alpha Vantage).
 Full detail and assumptions in [`results/summary.md`](results/summary.md).
 Rerun anytime with `python3 run_backtest.py`.
 
+Regime-by-regime stress tests and parameter sweeps are in [`results/scenarios.md`](results/scenarios.md) and [`results/robustness.md`](results/robustness.md) (`python3 run_scenarios.py`). The full operating rules — instruments, cadence, signals, position limits, and a paper-trade-first checklist — are in **[`PLAYBOOK.md`](PLAYBOOK.md)**.
+
 Key figures (Sharpe at a 3% risk-free rate; drawdown is worst peak-to-trough):
 
 | Strategy | CAGR | Max drawdown | Sharpe | Calmar |
@@ -88,12 +90,21 @@ Plain buy & hold has the highest raw return but a 54% drawdown that most
 people cannot hold through — which is exactly the risk the other three exist
 to reduce.
 
+### Stress test across regimes
+The trend overlay is insurance that paid off in the *slow* bears: it cut the
+dot-com loss from -43% to -13% and the GFC from -54% to -12%. No weekly rule
+dodges a *fast* crash (2018 Q4, COVID) cleanly. Robustness sweeps show the SMA
+filter improves smoothly from 26 to 50 weeks (not curve-fit), while dual
+momentum only behaves with a long 39-52 week lookback. Details in
+[`results/scenarios.md`](results/scenarios.md) and [`results/robustness.md`](results/robustness.md).
+
 ## 4. Run it yourself
 
 ```bash
 cd trading
 pip install -r requirements.txt
-python3 run_backtest.py                 # writes results/
+python3 run_backtest.py                 # headline metrics -> results/summary.md
+python3 run_scenarios.py                # regime + robustness -> results/
 python3 run_backtest.py --initial 5000 --dca 50   # smaller capital
 python3 tests/test_engine.py            # validation (no look-ahead, math)
 ```
